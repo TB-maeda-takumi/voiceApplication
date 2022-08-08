@@ -2,6 +2,7 @@ package com.example.voiceapplication;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,11 +22,17 @@ import com.google.android.material.snackbar.Snackbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.io.File;
+import java.util.logging.FileHandler;
+
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
-    private static final int PERMISSION_RECORD_AUDIO = 1;
+    private static final int PERMISSION_RECORD_AUDIO = 2;
+
+    public static Context context;
+    public static File filesDir;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +56,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
         checkRecordable();
+
+        //アプリ固有ディレクトリ作成
+        FileHandler(getApplicationContext());
     }
 
     @Override
@@ -88,14 +98,30 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= 23){
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
                     != PackageManager.PERMISSION_GRANTED){
-                ActivityCompat.requestPermissions(this,new String[]{
-                        Manifest.permission.RECORD_AUDIO
-                }, PERMISSION_RECORD_AUDIO);
-                return false;
+                if ((ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED)){
+                    ActivityCompat.requestPermissions(this,new String[]{
+                            Manifest.permission.RECORD_AUDIO,Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    }, PERMISSION_RECORD_AUDIO);
+                    return false;
+                }
             }
         }
         return false;
     }
 
+    public static void FileHandler(Context applicationContext){
+        context = applicationContext;
+        filesDir = applicationContext.getFilesDir();
+        context.getExternalFilesDir("");
+    }
+
+    public static File getFile(String filePath, String fileName){
+        return new File(context.getExternalFilesDir(filePath), fileName);
+    }
+
+    public static String getExternalFilePath(){
+        return context.getExternalFilesDir("").getPath();
+    }
 
 }
